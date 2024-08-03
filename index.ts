@@ -1,5 +1,5 @@
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-if (!canvas === null) throw new Error("Canvas element not found in document.");
+if (canvas === null) throw new Error("Canvas element not found in document.");
 
 const ctx = canvas.getContext("2d");
 if (ctx === null) throw new Error("2D Canvas context is not supported.");
@@ -105,7 +105,7 @@ const drawGrid = () => {
     const lineLength = (CANVAS_WIDTH / COLUMNS) * x;
     paint.line(lineLength, 0, lineLength, CANVAS_HEIGHT, {
       color: "#ffffff36",
-      width: 2,
+      width: 1.5,
     });
   }
 
@@ -118,12 +118,11 @@ const drawGrid = () => {
   }
 };
 
-// creates a grid of cells with values 1 or 0 randomly
 const createCells = (number: number) => {
-  let cells = [];
+  const cells = [];
 
   for (let i = 0; i < COLUMNS; i++) {
-    let row = [];
+    const row = [];
     for (let j = 0; j < ROWS; j++) {
       row.push(number);
     }
@@ -135,9 +134,15 @@ const createCells = (number: number) => {
 
 let prevGeneration = createCells(0);
 
+// Math.random will generate a number between 0 and 1,
+// and Math.round will turn either to 0 or 1. 
+// This random offset will weigh the chance to more or less cells.
+// This should be between 0 (50% of 0 and 1s) and 0.5 (0% chance of 1s)
+const RANDOM_OFFSET = 0.25;
+
 for (let i = 0; i < COLUMNS; i++) {
   for (let j = 0; j < ROWS; j++) {
-    prevGeneration[i][j] = Math.round(Math.random() - 0.3);
+    prevGeneration[i][j] = Math.round(Math.random() - RANDOM_OFFSET);
   }
 }
 
@@ -170,8 +175,8 @@ const countNeighbours = (generation: number[][], x: number, y: number) => {
     for (let j = -1; j <= 1; j++) {
       if (i === 0 && j === 0) continue;
 
-      let col = (x + i + COLUMNS) % COLUMNS;
-      let row = (y + j + COLUMNS) % COLUMNS;
+      const col = (x + i + COLUMNS) % COLUMNS;
+      const row = (y + j + COLUMNS) % COLUMNS;
       neighbours += generation[col][row];
     }
   }
@@ -232,5 +237,5 @@ if (startButton === null) {
 
 startButton.addEventListener("click", () => {
   startButton.disabled = true;
-  requestAnimationFrame(runGame);
+  requestAnimationFrame((time) => runGame(time));
 });

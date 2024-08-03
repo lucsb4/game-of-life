@@ -1,5 +1,5 @@
 var canvas = document.getElementById("canvas");
-if (!canvas === null)
+if (canvas === null)
     throw new Error("Canvas element not found in document.");
 var ctx = canvas.getContext("2d");
 if (ctx === null)
@@ -70,7 +70,7 @@ var drawGrid = function () {
         var lineLength = (CANVAS_WIDTH / COLUMNS) * x;
         paint.line(lineLength, 0, lineLength, CANVAS_HEIGHT, {
             color: "#ffffff36",
-            width: 2,
+            width: 1.5,
         });
     }
     for (var y = 1; y < ROWS; y++) {
@@ -81,7 +81,6 @@ var drawGrid = function () {
         });
     }
 };
-// creates a grid of cells with values 1 or 0 randomly
 var createCells = function (number) {
     var cells = [];
     for (var i = 0; i < COLUMNS; i++) {
@@ -94,9 +93,14 @@ var createCells = function (number) {
     return cells;
 };
 var prevGeneration = createCells(0);
+// Math.random will generate a number between 0 and 1,
+// and Math.round will turn either to 0 or 1. 
+// This random offset will weigh the chance to more or less cells.
+// This should be between 0 (50% of 0 and 1s) and 0.5 (0% chance of 1s)
+var RANDOM_OFFSET = 0.25;
 for (var i = 0; i < COLUMNS; i++) {
     for (var j = 0; j < ROWS; j++) {
-        prevGeneration[i][j] = Math.round(Math.random() - 0.3);
+        prevGeneration[i][j] = Math.round(Math.random() - RANDOM_OFFSET);
     }
 }
 var drawCells = function (generation) {
@@ -171,5 +175,5 @@ if (startButton === null) {
 }
 startButton.addEventListener("click", function () {
     startButton.disabled = true;
-    requestAnimationFrame(runGame);
+    requestAnimationFrame(function (time) { return runGame(time); });
 });
