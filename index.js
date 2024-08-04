@@ -94,7 +94,7 @@ var createCells = function (number) {
 };
 var prevGeneration = createCells(0);
 // Math.random will generate a number between 0 and 1,
-// and Math.round will turn either to 0 or 1. 
+// and Math.round will turn either to 0 or 1.
 // This random offset will weigh the chance to more or less cells.
 // This should be between 0 (50% of 0 and 1s) and 0.5 (0% chance of 1s)
 var RANDOM_OFFSET = 0.25;
@@ -106,12 +106,10 @@ for (var i = 0; i < COLUMNS; i++) {
 var drawCells = function (generation) {
     for (var x = 0; x < COLUMNS; x++) {
         for (var y = 0; y < ROWS; y++) {
-            var sizeX = CANVAS_WIDTH / COLUMNS;
-            var sizeY = CANVAS_WIDTH / ROWS;
-            var paddingX = (sizeX - RECT_SIZE) / 2;
-            var paddingY = (sizeY - RECT_SIZE) / 2;
             if (generation[x][y]) {
-                paint.rectangle(sizeX * x + paddingX, sizeY * y + paddingY, RECT_SIZE, RECT_SIZE, {
+                var sizeX = CANVAS_WIDTH / COLUMNS;
+                var sizeY = CANVAS_WIDTH / ROWS;
+                paint.rectangle(sizeX * x, sizeY * y, RECT_SIZE, RECT_SIZE, {
                     fillStyle: "white",
                 });
             }
