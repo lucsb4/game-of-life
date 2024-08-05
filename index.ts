@@ -1,9 +1,6 @@
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 if (canvas === null) throw new Error("Canvas element not found in document.");
 
-const ctx = canvas.getContext("2d");
-if (ctx === null) throw new Error("2D Canvas context is not supported.");
-
 const FRAME_RATE = 20;
 const FRAME_INTERVAL = 1000 / FRAME_RATE;
 
@@ -33,12 +30,46 @@ type StyleOptions = {
   strokeStyle?: CanvasStyle;
 };
 
-const Paint2D = (ctx: CanvasRenderingContext2D) => {
+type LineOptions = {
+  color: CanvasStyle;
+  width: number;
+};
+
+const Paint2D = function (canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext("2d");
+  if (ctx === null) {
+    throw new Error("2D Rendering context is not supported.");
+  }
+
   return {
+    background: function (style: CanvasStyle) {
+      this.rectangle(0, 0, canvas.width, canvas.height, { fillStyle: style });
+    },
     withinPath: function (path: () => void) {
       ctx.beginPath();
       path();
       ctx.closePath();
+    },
+    grid: function (
+      columns: number,
+      rows: number,
+      { color, width }: LineOptions
+    ) {
+      for (let x = 1; x < columns; x++) {
+        const lineLength = (canvas.width / columns) * x;
+        this.line(lineLength, 0, lineLength, canvas.height, {
+          color,
+          width,
+        });
+      }
+
+      for (let y = 1; y < rows; y++) {
+        const lineLength = (canvas.height / rows) * y;
+        this.line(0, lineLength, canvas.width, lineLength, {
+          color,
+          width,
+        });
+      }
     },
     circle: function (
       x: number,
@@ -54,6 +85,8 @@ const Paint2D = (ctx: CanvasRenderingContext2D) => {
         } else if (options.strokeStyle) {
           ctx.strokeStyle = options.strokeStyle;
           ctx.stroke();
+        } else if (options.fillStyle && options.strokeStyle) {
+          console.log("TODO");
         }
       });
     },
@@ -72,6 +105,8 @@ const Paint2D = (ctx: CanvasRenderingContext2D) => {
         } else if (options.strokeStyle) {
           ctx.strokeStyle = options.strokeStyle;
           ctx.stroke();
+        } else if (options.fillStyle && options.strokeStyle) {
+          console.log("TODO");
         }
       });
     },
@@ -80,7 +115,7 @@ const Paint2D = (ctx: CanvasRenderingContext2D) => {
       y1: number,
       x2: number,
       y2: number,
-      options: { color: CanvasStyle; width: number }
+      options: LineOptions
     ) {
       this.withinPath(() => {
         ctx.strokeStyle = options.color;
@@ -98,25 +133,7 @@ const Paint2D = (ctx: CanvasRenderingContext2D) => {
 };
 /* ****************************** */
 
-const paint = Paint2D(ctx);
-
-const drawGrid = () => {
-  for (let x = 1; x < COLUMNS; x++) {
-    const lineLength = (CANVAS_WIDTH / COLUMNS) * x;
-    paint.line(lineLength, 0, lineLength, CANVAS_HEIGHT, {
-      color: "#ffffff36",
-      width: 1.5,
-    });
-  }
-
-  for (let y = 1; y < ROWS; y++) {
-    const lineLength = (CANVAS_HEIGHT / ROWS) * y;
-    paint.line(0, lineLength, CANVAS_WIDTH, lineLength, {
-      color: "#ffffff36",
-      width: 1.5,
-    });
-  }
-};
+const paint = Paint2D(canvas);
 
 const createCells = (number: number) => {
   const cells = [];
@@ -175,46 +192,45 @@ const countNeighbours = (generation: number[][], x: number, y: number) => {
 };
 
 paint.render(() => {
-  paint.rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, {
-    fillStyle: "black",
-  });
-  drawGrid();
+  paint.background("black");
+  paint.grid(COLUMNS, ROWS, { color: "#ffffff36", width: 1.5 });
   drawCells(prevGeneration);
 });
 
 let prevTimestamp = 0;
 
 const runGame = (timestamp: number) => {
-  if (timestamp - prevTimestamp >= FRAME_INTERVAL) {
-    prevTimestamp = timestamp;
+  if (timestamp - prevTimestamp < FRAME_INTERVAL) {
+    requestAnimationFrame(runGame);
+    return;
+  }
 
-    let nextGeneration = createCells(0);
-    for (let x = 0; x < COLUMNS; x++) {
-      for (let y = 0; y < ROWS; y++) {
-        const state = prevGeneration[x][y];
+  prevTimestamp = timestamp;
 
-        let neighbours = countNeighbours(prevGeneration, x, y);
+  let nextGeneration = createCells(0);
+  for (let x = 0; x < COLUMNS; x++) {
+    for (let y = 0; y < ROWS; y++) {
+      const state = prevGeneration[x][y];
 
-        if (state == 0 && neighbours == 3) {
-          nextGeneration[x][y] = 1;
-        } else if (state == 1 && (neighbours < 2 || neighbours > 3)) {
-          nextGeneration[x][y] = 0;
-        } else {
-          nextGeneration[x][y] = state;
-        }
+      let neighbours = countNeighbours(prevGeneration, x, y);
+
+      if (state == 0 && neighbours == 3) {
+        nextGeneration[x][y] = 1;
+      } else if (state == 1 && (neighbours < 2 || neighbours > 3)) {
+        nextGeneration[x][y] = 0;
+      } else {
+        nextGeneration[x][y] = state;
       }
     }
-
-    prevGeneration = nextGeneration;
-
-    paint.render(() => {
-      paint.rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, {
-        fillStyle: "black",
-      });
-      drawGrid();
-      drawCells(nextGeneration);
-    });
   }
+
+  prevGeneration = nextGeneration;
+
+  paint.render(() => {
+    paint.background("black");
+    paint.grid(COLUMNS, ROWS, { color: "#ffffff36", width: 1.5 });
+    drawCells(nextGeneration);
+  });
 
   requestAnimationFrame(runGame);
 };
