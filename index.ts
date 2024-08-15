@@ -1,3 +1,5 @@
+import Paint2D from "./Paint2D.js";
+
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 if (canvas === null) throw new Error("Canvas element not found in document.");
 
@@ -8,9 +10,7 @@ const CANVAS_HEIGHT = 800;
 const CANVAS_WIDTH = 800;
 const COLUMNS = 100;
 const ROWS = 100;
-const CELL_HEIGHT = CANVAS_HEIGHT / ROWS;
-const CELL_WIDTH = CANVAS_WIDTH / COLUMNS;
-const RECT_SIZE = CELL_HEIGHT;
+const CELL_SIZE = CANVAS_HEIGHT / ROWS;
 
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
@@ -22,116 +22,6 @@ canvas.height = CANVAS_HEIGHT;
 // Any dead cell with exactly three live neighbours becomes a live cell.
 
 /* ************************* */
-
-type CanvasStyle = string | CanvasGradient | CanvasPattern;
-
-type StyleOptions = {
-  fillStyle?: CanvasStyle;
-  strokeStyle?: CanvasStyle;
-};
-
-type LineOptions = {
-  color: CanvasStyle;
-  width: number;
-};
-
-const Paint2D = function (canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d");
-  if (ctx === null) {
-    throw new Error("2D Rendering context is not supported.");
-  }
-
-  return {
-    background: function (style: CanvasStyle) {
-      this.rectangle(0, 0, canvas.width, canvas.height, { fillStyle: style });
-    },
-    withinPath: function (path: () => void) {
-      ctx.beginPath();
-      path();
-      ctx.closePath();
-    },
-    grid: function (
-      columns: number,
-      rows: number,
-      { color, width }: LineOptions
-    ) {
-      for (let x = 1; x < columns; x++) {
-        const lineLength = (canvas.width / columns) * x;
-        this.line(lineLength, 0, lineLength, canvas.height, {
-          color,
-          width,
-        });
-      }
-
-      for (let y = 1; y < rows; y++) {
-        const lineLength = (canvas.height / rows) * y;
-        this.line(0, lineLength, canvas.width, lineLength, {
-          color,
-          width,
-        });
-      }
-    },
-    circle: function (
-      x: number,
-      y: number,
-      radius: number,
-      options: StyleOptions
-    ) {
-      this.withinPath(() => {
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        if (options.fillStyle) {
-          ctx.fillStyle = options.fillStyle;
-          ctx.fill();
-        } else if (options.strokeStyle) {
-          ctx.strokeStyle = options.strokeStyle;
-          ctx.stroke();
-        } else if (options.fillStyle && options.strokeStyle) {
-          console.log("TODO");
-        }
-      });
-    },
-    rectangle: function (
-      x: number,
-      y: number,
-      width: number,
-      height: number,
-      options: StyleOptions
-    ) {
-      this.withinPath(() => {
-        ctx.rect(x, y, width, height);
-        if (options.fillStyle) {
-          ctx.fillStyle = options.fillStyle;
-          ctx.fill();
-        } else if (options.strokeStyle) {
-          ctx.strokeStyle = options.strokeStyle;
-          ctx.stroke();
-        } else if (options.fillStyle && options.strokeStyle) {
-          console.log("TODO");
-        }
-      });
-    },
-    line: function (
-      x1: number,
-      y1: number,
-      x2: number,
-      y2: number,
-      options: LineOptions
-    ) {
-      this.withinPath(() => {
-        ctx.strokeStyle = options.color;
-        ctx.lineWidth = options.width;
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      });
-    },
-    render: function (draw: () => void) {
-      ctx.reset();
-      draw();
-    },
-  };
-};
-/* ****************************** */
 
 const paint = Paint2D(canvas);
 
@@ -169,7 +59,7 @@ const drawCells = (generation: number[][]) => {
       if (generation[x][y]) {
         const sizeX = CANVAS_WIDTH / COLUMNS;
         const sizeY = CANVAS_WIDTH / ROWS;
-        paint.rectangle(sizeX * x, sizeY * y, RECT_SIZE, RECT_SIZE, {
+        paint.rectangle(sizeX * x, sizeY * y, CELL_SIZE, CELL_SIZE, {
           fillStyle: "white",
         });
       }

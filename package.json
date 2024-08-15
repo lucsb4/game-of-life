@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc ./index.ts --outFile index.js"
+    "build": "tsc --removeComments"
   },
   "author": "",
   "license": "ISC",
