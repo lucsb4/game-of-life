@@ -111,5 +111,20 @@ const Paint2D = function (canvas: HTMLCanvasElement) {
   };
 };
 
+// Interesting if you initialize the grid like this
+// for (let y = 1; y < ROWS; y++) {
+//  const lineLength = (CANVAS_HEIGHT / ROWS) * y;
+//  paint.line(
+//    0,
+//    (CANVAS_HEIGHT / ROWS) * y,
+//    (CANVAS_HEIGHT / ROWS) * y,
+//    CANVAS_WIDTH,
+//    {
+//      color: "#ffffff36",
+//      width: 2,
+//    }
+//  );
+// }
+
 export default Paint2D;
 
